@@ -41,8 +41,10 @@ jobs:
           VITE_API_BASE_URL: https://biogas-web-app-production.up.railway.app/api
         run: npm run build
 
-      - name: Add SPA 404 fallback for client-side routes
-        run: cp dist/index.html dist/404.html
+      - name: Add SPA 404 fallback and .nojekyll for GitHub Pages
+        run: |
+          cp dist/index.html dist/404.html
+          touch dist/.nojekyll
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3

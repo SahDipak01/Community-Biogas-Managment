@@ -9,3 +9,9 @@ backend/.env
 frontend/.env
 backend/backups/*.json
 *.log
+index.html
+404.html
+favicon.svg
+.nojekyll
+assets
+

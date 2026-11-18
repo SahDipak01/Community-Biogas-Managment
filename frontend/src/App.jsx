@@ -72,8 +72,9 @@ const MainLayout = ({ children }) => {
 };
 
 function App() {
+  const routerBase = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
   return (
-    <Router basename={import.meta.env.BASE_URL}>
+    <Router basename={routerBase}>
       <AuthProvider>
         <NotificationProvider>
           <Toast />
