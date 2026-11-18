@@ -75,6 +75,46 @@ const updateUser = async (req, res, next) => {
   }
 };
 
+// @desc    Admin reset a user's password
+// @route   PUT /api/users/:id/reset-password
+// @access  Private (Admin only)
+const adminResetPassword = async (req, res, next) => {
+  try {
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters long'
+      });
+    }
+
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    targetUser.password = newPassword;
+    targetUser.resetPasswordToken = undefined;
+    targetUser.resetPasswordExpire = undefined;
+    await targetUser.save();
+
+    await logAuditEvent(req, {
+      action: 'ADMIN_RESET_PASSWORD',
+      entityType: 'User',
+      entityId: targetUser._id,
+      summary: `Admin ${req.user.email} reset password for user ${targetUser.email}`,
+      metadata: { targetUserEmail: targetUser.email }
+    });
+
+    res.json({
+      success: true,
+      message: `Password for ${targetUser.name} (${targetUser.email}) updated successfully.`
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get system audit logs (Admin only)
 // @route   GET /api/users/audit-logs
 // @access  Private (Admin only)
@@ -111,5 +151,6 @@ const getAuditLogs = async (req, res, next) => {
 module.exports = {
   getUsers,
   updateUser,
+  adminResetPassword,
   getAuditLogs
 };

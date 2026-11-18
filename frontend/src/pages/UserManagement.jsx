@@ -13,7 +13,9 @@ import {
   XCircle,
   Building,
   History,
-  RefreshCw
+  RefreshCw,
+  KeyRound,
+  X
 } from 'lucide-react';
 
 const UserManagement = () => {
@@ -26,6 +28,11 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
+
+  // Password reset modal state
+  const [resetModalUser, setResetModalUser] = useState(null);
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [modalSaving, setModalSaving] = useState(false);
 
   // Audit Log state
   const [auditLogs, setAuditLogs] = useState([]);
@@ -99,6 +106,25 @@ const UserManagement = () => {
       }
     } catch (err) {
       addToast(err.response?.data?.message || 'Error updating status', 'error');
+    }
+  };
+
+  const handleAdminResetSubmit = async () => {
+    if (!resetModalUser || !newPasswordInput || newPasswordInput.length < 6) return;
+    try {
+      setModalSaving(true);
+      const res = await api.put(`/users/${resetModalUser._id}/reset-password`, {
+        newPassword: newPasswordInput
+      });
+      if (res.data.success) {
+        addToast(res.data.message || 'Password updated successfully', 'success');
+        setResetModalUser(null);
+        setNewPasswordInput('');
+      }
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to update user password', 'error');
+    } finally {
+      setModalSaving(false);
     }
   };
 
@@ -232,18 +258,32 @@ const UserManagement = () => {
                       </span>
                     </td>
                     <td className="p-3.5 pr-6 text-right">
-                      {u._id !== user?._id && (
+                      <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => handleStatusToggle(u._id, u.status)}
-                          className={`text-xs font-semibold px-3 py-1 rounded-lg border transition-colors ${
-                            u.status === 'active'
-                              ? 'text-rose-600 border-rose-200 hover:bg-rose-50'
-                              : 'text-emerald-600 border-emerald-200 hover:bg-emerald-50'
-                          }`}
+                          type="button"
+                          onClick={() => {
+                            setResetModalUser(u);
+                            setNewPasswordInput('');
+                          }}
+                          title="Reset Password for this user"
+                          className="text-[11px] font-semibold px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-colors inline-flex items-center gap-1"
                         >
-                          {u.status === 'active' ? 'Suspend' : 'Activate'}
+                          <KeyRound className="w-3 h-3 text-slate-500" />
+                          <span>Reset Pwd</span>
                         </button>
-                      )}
+                        {u._id !== user?._id && (
+                          <button
+                            onClick={() => handleStatusToggle(u._id, u.status)}
+                            className={`text-xs font-semibold px-3 py-1 rounded-lg border transition-colors ${
+                              u.status === 'active'
+                                ? 'text-rose-600 border-rose-200 hover:bg-rose-50'
+                                : 'text-emerald-600 border-emerald-200 hover:bg-emerald-50'
+                            }`}
+                          >
+                            {u.status === 'active' ? 'Suspend' : 'Activate'}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -346,6 +386,71 @@ const UserManagement = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Reset Password Modal */}
+      {resetModalUser && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full border border-slate-200 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <KeyRound className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Reset Password</h3>
+                  <p className="text-[11px] text-slate-500 truncate max-w-[180px]">{resetModalUser.email}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setResetModalUser(null);
+                  setNewPasswordInput('');
+                }}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                New Password for {resetModalUser.name}
+              </label>
+              <input
+                type="text"
+                value={newPasswordInput}
+                onChange={(e) => setNewPasswordInput(e.target.value)}
+                placeholder="Enter at least 6 characters"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                autoFocus
+              />
+              <p className="text-[10px] text-slate-400 mt-1">Must be at least 6 characters long</p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setResetModalUser(null);
+                  setNewPasswordInput('');
+                }}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleAdminResetSubmit}
+                disabled={!newPasswordInput || newPasswordInput.length < 6 || modalSaving}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm disabled:opacity-50 transition-colors"
+              >
+                {modalSaving ? 'Saving...' : 'Update Password'}
+              </button>
             </div>
           </div>
         </div>

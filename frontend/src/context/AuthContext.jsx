@@ -60,6 +60,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('biogas_user');
   };
 
+  const forgotPassword = async (email) => {
+    const res = await api.post('/auth/forgot-password', { email });
+    return res.data;
+  };
+
+  const resetPassword = async (token, password) => {
+    const res = await api.post('/auth/reset-password', { token, password });
+    return res.data;
+  };
+
   const value = {
     user,
     token,
@@ -67,6 +77,8 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    forgotPassword,
+    resetPassword,
     isAdmin: user?.role === 'admin',
     isCoordinator: user?.role === 'coordinator',
     isHousehold: user?.role === 'household'

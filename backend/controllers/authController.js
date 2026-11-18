@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 const Village = require('../models/Village');
 const Household = require('../models/Household');
@@ -274,9 +275,174 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
+// @desc    Initiate password reset (Forgot Password)
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide an email address'
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'No registered user found with that email address.'
+      });
+    }
+
+    if (user.status !== 'active') {
+      return res.status(403).json({
+        success: false,
+        message: 'Account is suspended or pending approval. Please contact administrator.'
+      });
+    }
+
+    const resetToken = user.getResetPasswordToken();
+    await user.save({ validateBeforeSave: false });
+
+    await logAuditEvent(req, {
+      action: 'FORGOT_PASSWORD_REQUESTED',
+      entityType: 'User',
+      entityId: user._id,
+      summary: `Password reset token requested for ${user.email}`,
+      metadata: { email: user.email }
+    });
+
+    res.json({
+      success: true,
+      message: 'Password reset token generated successfully.',
+      resetToken
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Reset password using token
+// @route   POST /api/auth/reset-password
+// @route   PUT /api/auth/reset-password/:token
+// @access  Public
+const resetPassword = async (req, res, next) => {
+  try {
+    const token = req.body.token || req.params.token;
+    const { password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide both the reset token and your new password'
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(token.trim())
+      .digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() }
+    }).select('+resetPasswordToken +resetPasswordExpire');
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired password reset token'
+      });
+    }
+
+    // Set new password (pre-save hook will hash it)
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    await logAuditEvent(req, {
+      action: 'PASSWORD_RESET_SUCCESS',
+      entityType: 'User',
+      entityId: user._id,
+      summary: `Password successfully reset for ${user.email}`,
+      metadata: { email: user.email }
+    });
+
+    res.json({
+      success: true,
+      message: 'Password has been reset successfully. Please log in with your new password.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Change password for logged-in user
+// @route   PUT /api/auth/change-password
+// @access  Private
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide both current and new password'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters long'
+      });
+    }
+
+    const user = await User.findById(req.user.id).select('+password');
+    if (!user || !(await user.comparePassword(currentPassword))) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    await logAuditEvent(req, {
+      action: 'PASSWORD_CHANGED',
+      entityType: 'User',
+      entityId: user._id,
+      summary: `User ${user.email} updated their account password`,
+      metadata: { email: user.email }
+    });
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getMe,
-  updateProfile
+  updateProfile,
+  forgotPassword,
+  resetPassword,
+  changePassword
 };

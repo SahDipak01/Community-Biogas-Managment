@@ -11,6 +11,7 @@ import Toast from './components/common/Toast';
 // Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import FeasibilityCalculator from './pages/FeasibilityCalculator';
 import FeedstockManagement from './pages/FeedstockManagement';
@@ -82,6 +83,8 @@ function App() {
             {/* Public Auth Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ForgotPassword />} />
 
             {/* Protected App Routes */}
             <Route

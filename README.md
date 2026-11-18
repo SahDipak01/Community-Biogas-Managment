@@ -24,15 +24,20 @@ A full-stack, responsive web application engineered for rural communities, Gram 
 
 ---
 
-## 2. Default User Roles & Demo Credentials
+## 2. User Roles & Access Scope
 
-The platform implements role-based access control (RBAC). For testing and demonstration, quick one-click login buttons are provided directly on the Login page:
+The platform implements strict Role-Based Access Control (RBAC). In accordance with production security standards, all account credentials are kept strictly private:
 
-| Role | Email | Password | Access Scope |
-| :--- | :--- | :--- | :--- |
-| **Administrator** | `admin@biogas.gov.in` | `Admin@123` | Full system governance, all villages & plants, user access control, government scheme CRUD, global reports. |
-| **Village Coordinator** | `coordinator@biogas.gov.in` | `Coord@123` | Gram Panchayat level management, household & cattle registry, daily feedstock collection logging, community pooling management, plant alerts. |
-| **Household User** | `household@biogas.gov.in` | `House@123` | Household profile, bovine dung tracking, feasibility calculator, plant performance monitoring, bio-slurry entitlement tracking. |
+| Role | Default Access Identity | Access Scope |
+| :--- | :--- | :--- |
+| **Administrator** | `admin@biogas.gov.in` | Full system governance, all villages & plants, user access control, database backup/restoration, government scheme CRUD, global reports. |
+| **Village Coordinator** | `coordinator@biogas.gov.in` | Gram Panchayat level management, household & cattle registry, daily feedstock collection logging, community pooling management, plant alerts. |
+| **Household User** | `household@biogas.gov.in` | Household profile, bovine dung tracking, feasibility calculator, plant performance monitoring, bio-slurry entitlement tracking. |
+
+> **Security & Access Policy:**
+> - Passwords and access credentials are confidential and only known to authorized users.
+> - **Self-Service Password Reset:** Registered users can reset forgotten passwords anytime via the **Forgot Password** portal (`/forgot-password`).
+> - **Administrative Password Reset:** System Administrators can also reset credentials for any user directly from the **User Governance** panel.
 
 ---
 

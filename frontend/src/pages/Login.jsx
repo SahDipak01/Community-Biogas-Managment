@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
-import { Flame, Lock, Mail, ArrowRight, ShieldCheck, Users, Home, Eye, EyeOff } from 'lucide-react';
+import { Flame, Lock, Mail, ArrowRight, Eye, EyeOff, Shield } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -22,7 +22,7 @@ const Login = () => {
 
     try {
       setLoading(true);
-      const user = await login(email, password);
+      const user = await login(email.trim(), password);
       addToast(`Welcome back, ${user.name}!`, 'success');
       navigate('/');
     } catch (err) {
@@ -30,20 +30,6 @@ const Login = () => {
       addToast(msg, 'error');
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Demo role shortcuts for instant 1-click evaluation
-  const setDemoCredentials = (role) => {
-    if (role === 'admin') {
-      setEmail('admin@biogas.gov.in');
-      setPassword('Admin@123');
-    } else if (role === 'coordinator') {
-      setEmail('coordinator@biogas.gov.in');
-      setPassword('Coord@123');
-    } else {
-      setEmail('household@biogas.gov.in');
-      setPassword('House@123');
     }
   };
 
@@ -63,43 +49,11 @@ const Login = () => {
 
         {/* Login Card */}
         <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-xl shadow-slate-200/50">
-          <h3 className="text-lg font-bold text-slate-800 mb-1">Sign in to your account</h3>
-          <p className="text-xs text-slate-500 mb-6">Choose a quick demo role or enter your credentials</p>
-
-          {/* Quick Demo Login Chips */}
-          <div className="mb-6 p-3 bg-slate-50 rounded-2xl border border-slate-200/60">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-2 text-center">
-              Quick 1-Click Demo Logins
-            </span>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('admin')}
-                className="flex flex-col items-center p-2 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100/70 transition-all text-emerald-800"
-              >
-                <ShieldCheck className="w-4 h-4 text-emerald-600 mb-1" />
-                <span className="text-[11px] font-bold">Admin</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('coordinator')}
-                className="flex flex-col items-center p-2 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100/70 transition-all text-sky-800"
-              >
-                <Users className="w-4 h-4 text-sky-600 mb-1" />
-                <span className="text-[11px] font-bold">Coordinator</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('household')}
-                className="flex flex-col items-center p-2 rounded-xl border border-amber-200 bg-amber-50/70 hover:bg-amber-100/70 transition-all text-amber-800"
-              >
-                <Home className="w-4 h-4 text-amber-600 mb-1" />
-                <span className="text-[11px] font-bold">Household</span>
-              </button>
-            </div>
+          <div className="flex items-center gap-2 mb-1">
+            <Shield className="w-4 h-4 text-emerald-600" />
+            <h3 className="text-lg font-bold text-slate-800">Secure Sign In</h3>
           </div>
+          <p className="text-xs text-slate-500 mb-6">Enter your authorized account credentials to continue</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -113,12 +67,21 @@ const Login = () => {
                   placeholder="name@biogas.gov.in"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                   required
+                  autoComplete="email"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700">Password</label>
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -128,11 +91,12 @@ const Login = () => {
                   placeholder="••••••••"
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                   required
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -156,13 +120,11 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-            <p className="text-xs text-slate-500">
-              Need a new account?{' '}
-              <Link to="/register" className="text-emerald-600 font-semibold hover:underline">
-                Register household or village
-              </Link>
-            </p>
+          <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="text-slate-500">Need a new account?</span>
+            <Link to="/register" className="text-emerald-600 font-semibold hover:underline">
+              Register household or village
+            </Link>
           </div>
         </div>
 
