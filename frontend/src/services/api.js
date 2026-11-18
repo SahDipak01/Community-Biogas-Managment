@@ -28,7 +28,7 @@ api.interceptors.response.use(
       if (localStorage.getItem('biogas_token')) {
         localStorage.removeItem('biogas_token');
         localStorage.removeItem('biogas_user');
-        window.location.href = '/login';
+        window.location.href = `${import.meta.env.BASE_URL}login`;
       }
     }
     return Promise.reject(error);
