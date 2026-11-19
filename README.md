@@ -25,6 +25,18 @@ The system supports households, village coordinators, and administrators through
 - **Village Coordinator:** Manages village households, cattle records, daily waste collection, community contributions, and plant monitoring.
 - **Household User:** Manages household information, tracks cattle and waste contributions, evaluates biogas feasibility, and monitors plant performance.
 
+## Demo Login Credentials
+
+Use the following credentials to access the application with different user roles.
+
+| User Role | Email | Password |
+|---|---|---|
+| Administrator | admin@biogas.gov.in | Admin@123 |
+| Village Coordinator | coordinator@biogas.gov.in | Coord@123 |
+| Household User | household@biogas.gov.in | House@123 |
+
+**Note:** These are demonstration credentials. Use them only for testing and evaluation. Do not use real government accounts or production credentials.
+
 ## Technology Stack
 
 - **Frontend:** React.js 18, Vite, Tailwind CSS
