@@ -1,5 +1,12 @@
 # Rural Community Biogas Feasibility and Resource Management System
 
+## Live Deployments & Links
+
+- **Frontend Application (GitHub Pages):** [https://sahdipak01.github.io/Community-Biogas-Managment/](https://sahdipak01.github.io/Community-Biogas-Managment/)
+- **Backend API (Railway Production):** [https://biogas-web-app-production.up.railway.app/api](https://biogas-web-app-production.up.railway.app/api)
+- **API Health Check:** [https://biogas-web-app-production.up.railway.app/api/health](https://biogas-web-app-production.up.railway.app/api/health)
+- **GitHub Source Repository:** [https://github.com/SahDipak01/Community-Biogas-Managment](https://github.com/SahDipak01/Community-Biogas-Managment)
+
 ## About the Project
 
 A full-stack MERN-based web application designed to help rural communities assess biogas plant feasibility, manage organic waste resources, monitor biogas production, and promote sustainable energy generation through community-based resource sharing.
@@ -49,8 +56,8 @@ Use the following credentials to access the application with different user role
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/rural-community-biogas-management.git
-cd rural-community-biogas-management
+git clone https://github.com/SahDipak01/Community-Biogas-Managment.git
+cd Community-Biogas-Managment
 ```
 
 ### 2. Install Dependencies
