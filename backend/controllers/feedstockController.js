@@ -226,8 +226,79 @@ const getSeasonalTrends = async (req, res, next) => {
   }
 };
 
+// @desc    Update existing feedstock record
+// @route   PUT /api/feedstock/:id
+// @access  Private (Coordinator or Admin)
+const updateFeedstockRecord = async (req, res, next) => {
+  try {
+    const record = await FeedstockRecord.findById(req.params.id);
+    if (!record) {
+      return res.status(404).json({ success: false, message: 'Feedstock record not found' });
+    }
+
+    const { dungKg, agriWasteKg, kitchenWasteKg, status, collectorName, season, notes } = req.body;
+
+    if (dungKg !== undefined) record.dungKg = Number(dungKg);
+    if (agriWasteKg !== undefined) record.agriWasteKg = Number(agriWasteKg);
+    if (kitchenWasteKg !== undefined) record.kitchenWasteKg = Number(kitchenWasteKg);
+    if (status) record.status = status;
+    if (collectorName) record.collectorName = collectorName;
+    if (season) record.season = season;
+    if (notes !== undefined) record.notes = notes;
+
+    record.totalKg = (record.dungKg || 0) + (record.agriWasteKg || 0) + (record.kitchenWasteKg || 0);
+
+    await record.save();
+
+    await logAuditEvent(req, {
+      action: 'UPDATE_FEEDSTOCK',
+      entityType: 'FeedstockRecord',
+      entityId: record._id,
+      summary: `Updated feedstock record ${record._id} (total: ${record.totalKg} kg, status: ${record.status})`,
+      metadata: { totalKg: record.totalKg, status: record.status }
+    });
+
+    res.json({
+      success: true,
+      data: record
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete feedstock record
+// @route   DELETE /api/feedstock/:id
+// @access  Private (Coordinator or Admin)
+const deleteFeedstockRecord = async (req, res, next) => {
+  try {
+    const record = await FeedstockRecord.findById(req.params.id);
+    if (!record) {
+      return res.status(404).json({ success: false, message: 'Feedstock record not found' });
+    }
+
+    await record.deleteOne();
+
+    await logAuditEvent(req, {
+      action: 'DELETE_FEEDSTOCK',
+      entityType: 'FeedstockRecord',
+      entityId: record._id,
+      summary: `Deleted feedstock collection record ${record._id}`
+    });
+
+    res.json({
+      success: true,
+      message: 'Feedstock record deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getFeedstockRecords,
   createFeedstockRecord,
+  updateFeedstockRecord,
+  deleteFeedstockRecord,
   getSeasonalTrends
 };

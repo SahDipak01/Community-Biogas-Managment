@@ -45,6 +45,15 @@ Use the following credentials to access the application with different user role
 - **Authentication:** JWT, bcrypt.js
 - **Libraries:** Axios, React Router DOM, Recharts, Leaflet, OpenStreetMap, Lucide React
 
+## Testing & Quality Assurance
+
+The system includes a master automated test suite verifying all 12 system domains (Authentication, RBAC, Feasibility Calculator, Feedstock CRUD, Resource Sharing, Monitoring Alerts, GIS, Schemes, Digestate, Analytics, Security, and E2E Workflows):
+
+```bash
+# Run full automated test suite
+npm test
+```
+
 ## Project Objective
 
 To develop a centralized digital platform that promotes renewable energy adoption in rural communities by evaluating biogas feasibility, improving organic waste management, encouraging community resource sharing, and supporting sustainable rural development.

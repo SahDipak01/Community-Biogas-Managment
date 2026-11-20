@@ -197,8 +197,10 @@ const loginUser = async (req, res, next) => {
       });
     }
 
+    const cleanEmail = String(email).toLowerCase().trim();
+
     // Find user and select password
-    const user = await User.findOne({ email }).select('+password').populate('village').populate('household');
+    const user = await User.findOne({ email: cleanEmail }).select('+password').populate('village').populate('household');
 
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({

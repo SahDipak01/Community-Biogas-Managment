@@ -89,14 +89,32 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 // Connect to Database and start server
-connectDB().then(() => {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Server] Rural Biogas Backend Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-    console.log(`[Server] API Base URL: http://localhost:${PORT}/api`);
-  });
-}).catch(err => {
-  console.error('[Server] Fatal error on bootstrap:', err.message);
-  process.exit(1);
-});
+if (require.main === module) {
+  connectDB().then(() => {
+    const startServer = (portToUse) => {
+      const serverInstance = app.listen(portToUse, '0.0.0.0', () => {
+        console.log(`[Server] Rural Biogas Backend Server running in ${process.env.NODE_ENV || 'development'} mode on port ${portToUse}`);
+        console.log(`[Server] API Base URL: http://localhost:${portToUse}/api`);
+      });
 
+      serverInstance.on('error', (err) => {
+        if (err.code === 'EADDRINUSE' && portToUse < Number(PORT) + 5) {
+          console.warn(`[Server] Port ${portToUse} is in use, trying next port ${portToUse + 1}...`);
+          startServer(portToUse + 1);
+        } else {
+          console.error('[Server] Fatal server listen error:', err.message);
+          process.exit(1);
+        }
+      });
+    };
+
+    startServer(Number(PORT));
+  }).catch(err => {
+    console.error('[Server] Fatal error on bootstrap:', err.message);
+    process.exit(1);
+  });
+}
+
+app.connectDB = connectDB;
+app.app = app;
 module.exports = app;

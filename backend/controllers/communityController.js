@@ -148,6 +148,13 @@ const createContributionAgreement = async (req, res, next) => {
 
     const assignedVillage = villageId || (req.user.village ? req.user.village._id || req.user.village : null);
 
+    if (!assignedVillage) {
+      return res.status(400).json({ success: false, message: 'Village ID is required' });
+    }
+    if (!householdId) {
+      return res.status(400).json({ success: false, message: 'Household ID is required' });
+    }
+
     const dung = Number(dailyDungCommittedKg) || 0;
     const agri = Number(agriWasteCommittedKg) || 0;
     const kitchen = Number(kitchenWasteCommittedKg) || 0;

@@ -50,7 +50,11 @@ const Login = () => {
       addToast(`Welcome back, ${user.name}!`, 'success');
       navigate('/');
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      const msg =
+        err.response?.data?.message ||
+        (err.code === 'ERR_NETWORK' || err.message === 'Network Error'
+          ? 'Cannot connect to backend server. Please check your internet connection.'
+          : 'Login failed. Please check your credentials.');
       addToast(msg, 'error');
     } finally {
       setLoading(false);
