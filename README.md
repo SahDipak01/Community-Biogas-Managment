@@ -45,6 +45,37 @@ Use the following credentials to access the application with different user role
 - **Authentication:** JWT, bcrypt.js
 - **Libraries:** Axios, React Router DOM, Recharts, Leaflet, OpenStreetMap, Lucide React
 
+## Installation & Local Setup
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/your-username/rural-community-biogas-management.git
+cd rural-community-biogas-management
+```
+
+### 2. Install Dependencies
+```bash
+# Install both backend and frontend dependencies
+npm run install:all
+```
+
+### 3. Environment Configuration
+Copy the placeholder environment configuration:
+```bash
+cp .env.example backend/.env
+```
+> **Zero-Setup Database Notice:** If a local MongoDB instance is not active, the backend automatically starts an in-memory MongoDB database pre-seeded with all 14 operational collections (households, plants, feedstock, schemes, and telemetry) for immediate evaluation.
+
+### 4. Start the Application
+```bash
+# Option A: Start backend server
+npm run server
+
+# Option B: Start frontend client
+npm run client
+```
+Open [http://localhost:3000](http://localhost:3000) (or Vite assigned port) in your browser.
+
 ## Testing & Quality Assurance
 
 The system includes a master automated test suite verifying all 12 system domains (Authentication, RBAC, Feasibility Calculator, Feedstock CRUD, Resource Sharing, Monitoring Alerts, GIS, Schemes, Digestate, Analytics, Security, and E2E Workflows):
