@@ -1,6 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
+import { useLanguage } from '../../context/LanguageContext';
+import { getPendingOps } from '../../services/offlineSync';
+import EmergencyAlertModal from '../modals/EmergencyAlertModal';
+import VoiceAssistantModal from '../modals/VoiceAssistantModal';
+import OfflineSyncModal from '../modals/OfflineSyncModal';
+import WastePickupModal from '../modals/WastePickupModal';
+import PlantBreakdownModal from '../modals/PlantBreakdownModal';
+import GrievanceModal from '../modals/GrievanceModal';
 import {
   Bell,
   Menu,
@@ -12,14 +20,47 @@ import {
   CheckCheck,
   Flame,
   AlertTriangle,
-  Info
+  Info,
+  Mic,
+  Globe,
+  AlertOctagon,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 
 const Navbar = ({ onToggleSidebar }) => {
   const { user, logout } = useAuth();
   const { notifications, unreadCount, markAllAsRead } = useNotification();
+  const { language, setLanguage, t } = useLanguage();
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef(null);
+
+  // Modals state
+  const [showEmergency, setShowEmergency] = useState(false);
+  const [showVoice, setShowVoice] = useState(false);
+  const [showSync, setShowSync] = useState(false);
+  const [showWaste, setShowWaste] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [showGrievance, setShowGrievance] = useState(false);
+
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [pendingSyncCount, setPendingSyncCount] = useState(0);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Check pending count
+    getPendingOps().then((ops) => setPendingSyncCount(ops.length)).catch(() => {});
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -79,14 +120,56 @@ const Navbar = ({ onToggleSidebar }) => {
           </div>
         </div>
 
-        {/* Right Section: Village tag, Notification bell, User profile */}
-        <div className="flex items-center gap-2 sm:gap-4">
-          {user?.village && (
-            <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-600 bg-slate-100/80 px-2.5 py-1 rounded-lg border border-slate-200/60">
-              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="font-medium text-slate-800">{user.village.name || 'Assigned Village'}</span>
-            </div>
-          )}
+        {/* Right Section: Emergency trigger, Language, Voice, Sync, Notifications, Profile */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          {/* Emergency Alert Button - Red Pulse */}
+          <button
+            onClick={() => setShowEmergency(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/30 transition-all animate-pulse"
+            title="Report Urgent Gas Leak or Pipeline Hazard"
+          >
+            <AlertOctagon className="w-4 h-4" />
+            <span className="hidden sm:inline">
+              {language === 'ta' ? 'அவசரம்!' : 'EMERGENCY'}
+            </span>
+          </button>
+
+          {/* Voice Assistant Button */}
+          <button
+            onClick={() => setShowVoice(true)}
+            className="p-2 rounded-xl text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors"
+            title="Rural Voice Assistant"
+          >
+            <Mic className="w-4 h-4" />
+          </button>
+
+          {/* Language Selector Button */}
+          <button
+            onClick={() => setLanguage(language === 'en' ? 'ta' : 'en')}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold border border-slate-200 hover:bg-slate-100 text-slate-700 transition-colors"
+            title="Switch Language / மொழியை மாற்றுக"
+          >
+            <Globe className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{language === 'en' ? 'தமிழ்' : 'English'}</span>
+          </button>
+
+          {/* Offline Sync Status Indicator */}
+          <button
+            onClick={() => setShowSync(true)}
+            className={`p-2 rounded-xl border transition-colors relative ${
+              isOnline
+                ? 'text-slate-600 border-slate-200 hover:bg-slate-100'
+                : 'text-amber-700 bg-amber-50 border-amber-300'
+            }`}
+            title="Offline & Sync Center"
+          >
+            {isOnline ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
+            {pendingSyncCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white text-[9px] font-bold flex items-center justify-center">
+                {pendingSyncCount}
+              </span>
+            )}
+          </button>
 
           {/* Notifications Dropdown */}
           <div ref={notifRef} className="relative">
@@ -138,7 +221,7 @@ const Navbar = ({ onToggleSidebar }) => {
                         }`}
                       >
                         <div className="pt-0.5 flex-shrink-0">
-                          {notif.type === 'alert' ? (
+                          {notif.type === 'alert' || notif.type === 'emergency' ? (
                             <AlertTriangle className="w-4 h-4 text-rose-500" />
                           ) : notif.type === 'warning' ? (
                             <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -162,7 +245,7 @@ const Navbar = ({ onToggleSidebar }) => {
           </div>
 
           {/* User Profile & Logout */}
-          <div className="flex items-center gap-3 pl-2 sm:pl-3 border-l border-slate-200">
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
             <div className="hidden sm:block text-right">
               <div className="text-xs font-semibold text-slate-800">{user?.name || 'User'}</div>
               <div>{getRoleBadge(user?.role)}</div>
@@ -178,6 +261,44 @@ const Navbar = ({ onToggleSidebar }) => {
           </div>
         </div>
       </div>
+
+      {/* Render Popups & Accessibility Modals */}
+      <EmergencyAlertModal
+        isOpen={showEmergency}
+        onClose={() => setShowEmergency(false)}
+      />
+
+      <VoiceAssistantModal
+        isOpen={showVoice}
+        onClose={() => setShowVoice(false)}
+        onOpenWasteModal={() => setShowWaste(true)}
+        onOpenBreakdownModal={() => setShowBreakdown(true)}
+        onOpenGrievanceModal={() => setShowGrievance(true)}
+        onOpenEmergencyModal={() => setShowEmergency(true)}
+      />
+
+      <OfflineSyncModal
+        isOpen={showSync}
+        onClose={() => {
+          setShowSync(false);
+          getPendingOps().then((ops) => setPendingSyncCount(ops.length)).catch(() => {});
+        }}
+      />
+
+      <WastePickupModal
+        isOpen={showWaste}
+        onClose={() => setShowWaste(false)}
+      />
+
+      <PlantBreakdownModal
+        isOpen={showBreakdown}
+        onClose={() => setShowBreakdown(false)}
+      />
+
+      <GrievanceModal
+        isOpen={showGrievance}
+        onClose={() => setShowGrievance(false)}
+      />
     </header>
   );
 };

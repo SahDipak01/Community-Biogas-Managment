@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import StatCard from '../common/StatCard';
 import ProductionChart from '../charts/ProductionChart';
 import FeedstockChart from '../charts/FeedstockChart';
+import FinancialLedgerModal from '../modals/FinancialLedgerModal';
+import PlantBreakdownModal from '../modals/PlantBreakdownModal';
+import EmergencyAlertModal from '../modals/EmergencyAlertModal';
 import {
   ShieldCheck,
   Building2,
@@ -30,9 +33,13 @@ import {
   CheckCircle2
 } from 'lucide-react';
 
-const AdminDashboardView = ({ data, selectedVillage, onSelectVillage }) => {
+const AdminDashboardView = ({ data, selectedVillage, onSelectVillage, onRefresh }) => {
   const { metrics, charts, recentAlerts, villages, adminData } = data || {};
   const userCounts = adminData?.userCounts || { total: 0, admins: 0, coordinators: 0, households: 0 };
+
+  const [showLedger, setShowLedger] = useState(false);
+  const [showBreakdowns, setShowBreakdowns] = useState(false);
+  const [showEmergency, setShowEmergency] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -70,6 +77,22 @@ const AdminDashboardView = ({ data, selectedVillage, onSelectVillage }) => {
               ))}
             </select>
           </div>
+
+          <button
+            onClick={() => setShowLedger(true)}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition-colors"
+          >
+            <IndianRupee className="w-3.5 h-3.5 text-emerald-300" />
+            <span>Audit Ledger</span>
+          </button>
+
+          <button
+            onClick={() => setShowBreakdowns(true)}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs font-bold transition-colors"
+          >
+            <Activity className="w-3.5 h-3.5 text-amber-300" />
+            <span>Plant Defect Log</span>
+          </button>
 
           <Link
             to="/villages"
@@ -408,6 +431,24 @@ const AdminDashboardView = ({ data, selectedVillage, onSelectVillage }) => {
           </Link>
         </div>
       </div>
+      {/* Admin Operations Modals */}
+      <FinancialLedgerModal
+        isOpen={showLedger}
+        onClose={() => setShowLedger(false)}
+      />
+
+      <PlantBreakdownModal
+        isOpen={showBreakdowns}
+        onClose={() => setShowBreakdowns(false)}
+        onBreakdownReported={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
+
+      <EmergencyAlertModal
+        isOpen={showEmergency}
+        onClose={() => setShowEmergency(false)}
+      />
     </div>
   );
 };

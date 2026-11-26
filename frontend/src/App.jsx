@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { LanguageProvider } from './context/LanguageContext';
 
 // Common Components
 import Navbar from './components/common/Navbar';
@@ -77,7 +78,8 @@ function App() {
   return (
     <Router basename={routerBase}>
       <AuthProvider>
-        <NotificationProvider>
+        <LanguageProvider>
+          <NotificationProvider>
           <Toast />
           <Routes>
             {/* Public Auth Routes */}
@@ -270,8 +272,9 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </NotificationProvider>
-      </AuthProvider>
-    </Router>
+      </LanguageProvider>
+    </AuthProvider>
+  </Router>
   );
 }
 

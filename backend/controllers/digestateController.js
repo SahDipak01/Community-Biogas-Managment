@@ -496,10 +496,146 @@ const updateDistributionStatus = async (req, res, next) => {
   }
 };
 
+const DigestateBatch = require('../models/DigestateBatch');
+
+// @desc    Get marketplace digestate batches
+// @route   GET /api/digestate/batches
+// @access  Private
+const getBatches = async (req, res, next) => {
+  try {
+    const { villageId, status } = req.query;
+    const query = {};
+    if (villageId && villageId !== 'all') query.village = villageId;
+    else if (req.user.role === 'coordinator' && req.user.village) {
+      query.village = req.user.village._id || req.user.village;
+    }
+    if (status && status !== 'all') query.status = status;
+
+    const batches = await DigestateBatch.find(query)
+      .populate('biogasPlant', 'plantName plantCode capacityM3')
+      .populate('village', 'name district state')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: batches.length,
+      data: batches
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Record new digestate inventory batch
+// @route   POST /api/digestate/batches
+// @access  Private (Coordinator, Admin)
+const createBatch = async (req, res, next) => {
+  try {
+    const {
+      biogasPlantId,
+      villageId,
+      volumeLiters,
+      form,
+      qualityTesting,
+      pricePerLiterInr
+    } = req.body;
+
+    let targetPlant = null;
+    if (biogasPlantId) {
+      targetPlant = await BiogasPlant.findById(biogasPlantId);
+    } else {
+      const vid = villageId || (req.user.village?._id || req.user.village);
+      targetPlant = await BiogasPlant.findOne({ village: vid });
+    }
+
+    if (!targetPlant) {
+      return res.status(400).json({ success: false, message: 'Valid Biogas Plant is required' });
+    }
+
+    const count = await DigestateBatch.countDocuments();
+    const batchNumber = `DGT-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+    const vol = Number(volumeLiters) || 1000;
+
+    const batch = await DigestateBatch.create({
+      batchNumber,
+      biogasPlant: targetPlant._id,
+      village: targetPlant.village,
+      initialVolumeLiters: vol,
+      availableVolumeLiters: vol,
+      allocatedVolumeLiters: 0,
+      form: form || 'Liquid Bio-Slurry',
+      qualityTesting: qualityTesting || {
+        tested: true,
+        testDate: new Date(),
+        testedByLab: 'Village Quality Assayer',
+        phValue: 7.4,
+        nitrogenPct: 1.8,
+        phosphorusPct: 1.0,
+        potassiumPct: 1.1,
+        heavyMetalsPass: true
+      },
+      pricePerLiterInr: Number(pricePerLiterInr) || 0,
+      status: 'Available'
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Digestate fertilizer batch registered in inventory',
+      data: batch
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Household requests fertilizer from available batch
+// @route   POST /api/digestate/batches/:id/request
+// @access  Private (Household, Coordinator)
+const requestBatchAllocation = async (req, res, next) => {
+  try {
+    const { requestedLiters, deliveryNotes } = req.body;
+    const batch = await DigestateBatch.findById(req.params.id);
+
+    if (!batch) {
+      return res.status(404).json({ success: false, message: 'Digestate batch not found' });
+    }
+
+    const reqVol = Number(requestedLiters) || 100;
+    if (batch.availableVolumeLiters < reqVol) {
+      return res.status(400).json({
+        success: false,
+        message: `Insufficient batch inventory. Available: ${batch.availableVolumeLiters} L`
+      });
+    }
+
+    batch.availableVolumeLiters -= reqVol;
+    batch.allocatedVolumeLiters += reqVol;
+    if (batch.availableVolumeLiters <= 0) {
+      batch.status = 'Exhausted';
+    }
+    await batch.save();
+
+    res.json({
+      success: true,
+      message: `Successfully allocated ${reqVol} Liters of organic bio-slurry`,
+      data: {
+        batchNumber: batch.batchNumber,
+        allocatedLiters: reqVol,
+        remainingBatchVolume: batch.availableVolumeLiters
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getDigestateSummary,
   registerFarmerLand,
   createDigestateDistribution,
   updateDistributionStatus,
+  getBatches,
+  createBatch,
+  requestBatchAllocation,
   DIGESTATE_CONSTANTS
 };

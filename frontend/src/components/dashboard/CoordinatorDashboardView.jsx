@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom';
 import StatCard from '../common/StatCard';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
+import { useLanguage } from '../../context/LanguageContext';
+import GasInterruptionModal from '../modals/GasInterruptionModal';
+import PlantBreakdownModal from '../modals/PlantBreakdownModal';
+import FinancialLedgerModal from '../modals/FinancialLedgerModal';
+import OfflineSyncModal from '../modals/OfflineSyncModal';
+import WastePickupModal from '../modals/WastePickupModal';
 import {
   Users,
   Beef,
@@ -21,14 +27,25 @@ import {
   Sprout,
   X,
   Save,
-  Home
+  Home,
+  BellRing,
+  Wrench,
+  Receipt,
+  Wifi
 } from 'lucide-react';
 
 const CoordinatorDashboardView = ({ data, onRefresh }) => {
   const { coordinatorData, metrics, recentAlerts } = data || {};
   const { addToast } = useNotification();
+  const { t, language } = useLanguage();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [showInterruptionModal, setShowInterruptionModal] = useState(false);
+  const [showBreakdownModal, setShowBreakdownModal] = useState(false);
+  const [showLedgerModal, setShowLedgerModal] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [showPickupModal, setShowPickupModal] = useState(false);
+
   const [selectedHouseholdId, setSelectedHouseholdId] = useState('');
   const [dungKg, setDungKg] = useState(30);
   const [agriWasteKg, setAgriWasteKg] = useState(5);
@@ -93,14 +110,46 @@ const CoordinatorDashboardView = ({ data, onRefresh }) => {
           </p>
         </div>
 
-        {/* Quick 1-Click Intake CTA */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Quick Operations Action Bar */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => handleOpenIntakeModal()}
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-teal-950 text-xs font-extrabold shadow-lg transition-transform active:scale-95"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-teal-950 text-xs font-extrabold shadow-lg transition-transform active:scale-95"
           >
             <PlusCircle className="w-4 h-4" />
-            <span>Log Daily Waste Intake</span>
+            <span>Log Daily Intake</span>
+          </button>
+
+          <button
+            onClick={() => setShowInterruptionModal(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs font-bold"
+          >
+            <BellRing className="w-4 h-4 text-amber-300" />
+            <span>Announce Outage</span>
+          </button>
+
+          <button
+            onClick={() => setShowBreakdownModal(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-200 text-xs font-bold"
+          >
+            <Wrench className="w-4 h-4 text-rose-300" />
+            <span>Plant Repairs</span>
+          </button>
+
+          <button
+            onClick={() => setShowLedgerModal(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-teal-500/20 hover:bg-teal-500/30 border border-teal-400/40 text-teal-200 text-xs font-bold"
+          >
+            <Receipt className="w-4 h-4 text-teal-300" />
+            <span>Village Ledger</span>
+          </button>
+
+          <button
+            onClick={() => setShowSyncModal(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-bold"
+          >
+            <Wifi className="w-4 h-4 text-slate-300" />
+            <span>Sync Center</span>
           </button>
         </div>
       </div>
@@ -444,6 +493,37 @@ const CoordinatorDashboardView = ({ data, onRefresh }) => {
           </div>
         </div>
       )}
+      {/* Operational Modals */}
+      <GasInterruptionModal
+        isOpen={showInterruptionModal}
+        onClose={() => setShowInterruptionModal(false)}
+        onInterruptionAnnounced={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
+
+      <PlantBreakdownModal
+        isOpen={showBreakdownModal}
+        onClose={() => setShowBreakdownModal(false)}
+        onBreakdownReported={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
+
+      <FinancialLedgerModal
+        isOpen={showLedgerModal}
+        onClose={() => setShowLedgerModal(false)}
+      />
+
+      <OfflineSyncModal
+        isOpen={showSyncModal}
+        onClose={() => setShowSyncModal(false)}
+      />
+
+      <WastePickupModal
+        isOpen={showPickupModal}
+        onClose={() => setShowPickupModal(false)}
+      />
     </div>
   );
 };

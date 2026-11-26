@@ -24,12 +24,22 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['alert', 'warning', 'info', 'success'],
+      enum: ['alert', 'warning', 'info', 'success', 'emergency'],
       default: 'info'
     },
     category: {
       type: String,
-      enum: ['PLANT_ANOMALY', 'FEEDSTOCK_DEFICIT', 'COMMUNITY_UPDATE', 'SUBSIDY_ALERT', 'GENERAL'],
+      enum: [
+        'PLANT_ANOMALY',
+        'FEEDSTOCK_DEFICIT',
+        'COMMUNITY_UPDATE',
+        'SUBSIDY_ALERT',
+        'GENERAL',
+        'gas_supply',
+        'GAS_SUPPLY',
+        'emergency',
+        'EMERGENCY'
+      ],
       default: 'GENERAL'
     },
     title: {

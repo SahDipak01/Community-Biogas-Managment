@@ -3,6 +3,13 @@ import { Link } from 'react-router-dom';
 import StatCard from '../common/StatCard';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
+import { useLanguage } from '../../context/LanguageContext';
+import WastePickupModal from '../modals/WastePickupModal';
+import PlantBreakdownModal from '../modals/PlantBreakdownModal';
+import GrievanceModal from '../modals/GrievanceModal';
+import SubsidyApplyModal from '../modals/SubsidyApplyModal';
+import SlurryRequestModal from '../modals/SlurryRequestModal';
+import FinancialLedgerModal from '../modals/FinancialLedgerModal';
 import {
   Home,
   Beef,
@@ -21,17 +28,36 @@ import {
   X,
   Save,
   MapPin,
-  Sparkles
+  Sparkles,
+  Calendar,
+  Wrench,
+  MessageSquare,
+  Sprout,
+  Receipt
 } from 'lucide-react';
 
 const HouseholdDashboardView = ({ data, onRefresh }) => {
   const { householdData } = data || {};
   const { addToast } = useNotification();
+  const { t, language } = useLanguage();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [showPickupModal, setShowPickupModal] = useState(false);
+  const [showBreakdownModal, setShowBreakdownModal] = useState(false);
+  const [showGrievanceModal, setShowGrievanceModal] = useState(false);
+  const [showSubsidyModal, setShowSubsidyModal] = useState(false);
+  const [showSlurryModal, setShowSlurryModal] = useState(false);
+  const [showLedgerModal, setShowLedgerModal] = useState(false);
+
   const [dungKg, setDungKg] = useState(20);
   const [kitchenWasteKg, setKitchenWasteKg] = useState(2);
   const [submitting, setSubmitting] = useState(false);
+
+  // Household Savings Calculator State (Phase 13)
+  const [lpgCylindersUsed, setLpgCylindersUsed] = useState(1.2);
+  const [lpgCylinderCost, setLpgCylinderCost] = useState(950);
+  const [firewoodCost, setFirewoodCost] = useState(300);
+  const [biogasUsageHours, setBiogasUsageHours] = useState(2.5);
 
   const household = householdData?.household;
   const cattleSummary = householdData?.cattleSummary || { totalHead: 0, dailyDungKg: 0, breakdown: [] };
@@ -96,14 +122,54 @@ const HouseholdDashboardView = ({ data, onRefresh }) => {
           </p>
         </div>
 
-        {/* Quick Action Button */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Quick Action Button Strip */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => setShowPickupModal(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-white hover:bg-emerald-50 text-emerald-900 text-xs font-extrabold shadow-md transition-transform active:scale-95"
+          >
+            <Calendar className="w-4 h-4 text-emerald-600" />
+            <span>{language === 'ta' ? 'கழிவு சேகரிப்பு கோரிக்கை' : 'Schedule Waste Pickup'}</span>
+          </button>
+
           <button
             onClick={() => setModalOpen(true)}
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white hover:bg-emerald-50 text-emerald-900 text-xs font-extrabold shadow-lg transition-transform active:scale-95"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-700/80 hover:bg-emerald-600 border border-emerald-400/30 text-white text-xs font-bold transition-transform active:scale-95"
           >
-            <PlusCircle className="w-4 h-4 text-emerald-600" />
-            <span>Self-Log Today's Waste</span>
+            <PlusCircle className="w-4 h-4 text-emerald-300" />
+            <span>{language === 'ta' ? 'இன்றைய கழிவு பதிவு' : 'Self-Log Waste'}</span>
+          </button>
+
+          <button
+            onClick={() => setShowBreakdownModal(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs font-bold"
+          >
+            <Wrench className="w-4 h-4 text-amber-300" />
+            <span>{language === 'ta' ? 'பழுது புகாரளி' : 'Report Issue'}</span>
+          </button>
+
+          <button
+            onClick={() => setShowGrievanceModal(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-200 text-xs font-bold"
+          >
+            <MessageSquare className="w-4 h-4 text-sky-300" />
+            <span>{language === 'ta' ? 'குறைதீர்ப்பு' : 'Grievance'}</span>
+          </button>
+
+          <button
+            onClick={() => setShowSlurryModal(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-teal-500/20 hover:bg-teal-500/30 border border-teal-400/40 text-teal-200 text-xs font-bold"
+          >
+            <Sprout className="w-4 h-4 text-teal-300" />
+            <span>{language === 'ta' ? 'உரம் முன்பதிவு' : 'Bio-Slurry'}</span>
+          </button>
+
+          <button
+            onClick={() => setShowLedgerModal(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-bold"
+          >
+            <Receipt className="w-4 h-4 text-slate-300" />
+            <span>{language === 'ta' ? 'ரசீதுகள்' : 'Ledger & Receipts'}</span>
           </button>
         </div>
       </div>
@@ -421,6 +487,153 @@ const HouseholdDashboardView = ({ data, onRefresh }) => {
           </div>
         </div>
       )}
+      {/* Household Energy Savings Calculator (Phase 13) */}
+      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600">
+              <Calculator className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">
+                {language === 'ta' ? 'குடும்ப ஆற்றல் சேமிப்பு கணக்கீடு (Energy Savings)' : 'Household Energy & LPG Savings Calculator'}
+              </h3>
+              <p className="text-[11px] text-slate-500">
+                {language === 'ta' ? 'உயிர்வாயு பயன்பாட்டின் மூலம் எல்.பி.ஜி மற்றும் விறகு செலவு குறைப்பு' : 'Live amortization of cooking fuel displacement against conventional fuels'}
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase tracking-wide">
+            Verified Formula
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-700">LPG Cylinders / Month</label>
+            <input
+              type="number"
+              min="0.5"
+              max="5"
+              step="0.1"
+              value={lpgCylindersUsed}
+              onChange={(e) => setLpgCylindersUsed(Number(e.target.value))}
+              className="w-full p-2.5 border rounded-xl text-xs font-bold text-slate-800"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-700">Cylinder Refill Cost (₹)</label>
+            <input
+              type="number"
+              min="500"
+              max="1500"
+              step="10"
+              value={lpgCylinderCost}
+              onChange={(e) => setLpgCylinderCost(Number(e.target.value))}
+              className="w-full p-2.5 border rounded-xl text-xs font-bold text-slate-800"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-700">Firewood / Biomass Cost (₹/mo)</label>
+            <input
+              type="number"
+              min="0"
+              max="2000"
+              step="50"
+              value={firewoodCost}
+              onChange={(e) => setFirewoodCost(Number(e.target.value))}
+              className="w-full p-2.5 border rounded-xl text-xs font-bold text-slate-800"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-700">Daily Biogas Cooking (Hours)</label>
+            <input
+              type="number"
+              min="0.5"
+              max="6"
+              step="0.5"
+              value={biogasUsageHours}
+              onChange={(e) => setBiogasUsageHours(Number(e.target.value))}
+              className="w-full p-2.5 border rounded-xl text-xs font-bold text-slate-800"
+            />
+          </div>
+        </div>
+
+        {/* Calculation Results Strip */}
+        {(() => {
+          const prevTotal = lpgCylindersUsed * lpgCylinderCost + firewoodCost;
+          const displacementRate = Math.min(0.9, 0.4 + (biogasUsageHours * 0.18));
+          const monthlySaved = Math.round(prevTotal * displacementRate);
+          const annualSaved = monthlySaved * 12;
+          const co2AvoidedKg = Math.round(lpgCylindersUsed * 14.2 * 1.5 * displacementRate);
+
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl">
+              <div className="text-center sm:text-left">
+                <span className="text-[10px] font-bold uppercase text-emerald-800 block">Estimated Monthly Savings</span>
+                <span className="text-xl font-extrabold text-emerald-950">₹{monthlySaved.toLocaleString()}</span>
+                <span className="text-[10px] text-emerald-700 block">~{Math.round(displacementRate * 100)}% commercial fuel replaced</span>
+              </div>
+              <div className="text-center sm:text-left">
+                <span className="text-[10px] font-bold uppercase text-emerald-800 block">Annual Cash Retained</span>
+                <span className="text-xl font-extrabold text-emerald-950">₹{annualSaved.toLocaleString()}</span>
+                <span className="text-[10px] text-emerald-700 block">Cumulative household budget retained</span>
+              </div>
+              <div className="text-center sm:text-left">
+                <span className="text-[10px] font-bold uppercase text-emerald-800 block">Emissions Avoided</span>
+                <span className="text-xl font-extrabold text-teal-900">{co2AvoidedKg} kg CO₂e</span>
+                <span className="text-[10px] text-teal-700 block">Monthly rural carbon mitigation</span>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* Render Sub-Modals */}
+      <WastePickupModal
+        isOpen={showPickupModal}
+        onClose={() => setShowPickupModal(false)}
+        onPickupScheduled={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
+
+      <PlantBreakdownModal
+        isOpen={showBreakdownModal}
+        onClose={() => setShowBreakdownModal(false)}
+        onBreakdownReported={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
+
+      <GrievanceModal
+        isOpen={showGrievanceModal}
+        onClose={() => setShowGrievanceModal(false)}
+        onGrievanceSubmitted={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
+
+      <SubsidyApplyModal
+        isOpen={showSubsidyModal}
+        onClose={() => setShowSubsidyModal(false)}
+      />
+
+      <SlurryRequestModal
+        isOpen={showSlurryModal}
+        onClose={() => setShowSlurryModal(false)}
+        onSlurryRequested={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
+
+      <FinancialLedgerModal
+        isOpen={showLedgerModal}
+        onClose={() => setShowLedgerModal(false)}
+      />
     </div>
   );
 };

@@ -24,6 +24,14 @@ const optimizerRoutes = require('./routes/optimizerRoutes');
 const incentiveRoutes = require('./routes/incentiveRoutes');
 const digestateRoutes = require('./routes/digestateRoutes');
 const simulatorRoutes = require('./routes/simulatorRoutes');
+const wasteCollectionRoutes = require('./routes/wasteCollectionRoutes');
+const breakdownRoutes = require('./routes/breakdownRoutes');
+const complaintRoutes = require('./routes/complaintRoutes');
+const gasInterruptionRoutes = require('./routes/gasInterruptionRoutes');
+const subsidyRoutes = require('./routes/subsidyRoutes');
+const financeRoutes = require('./routes/financeRoutes');
+const emergencyRoutes = require('./routes/emergencyRoutes');
+const syncRoutes = require('./routes/syncRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -66,6 +74,14 @@ app.use('/api/optimizer', optimizerRoutes);
 app.use('/api/incentives', incentiveRoutes);
 app.use('/api/digestate', digestateRoutes);
 app.use('/api/simulator', simulatorRoutes);
+app.use('/api/waste-collection', wasteCollectionRoutes);
+app.use('/api/breakdowns', breakdownRoutes);
+app.use('/api/complaints', complaintRoutes);
+app.use('/api/gas-interruptions', gasInterruptionRoutes);
+app.use('/api/subsidies', subsidyRoutes);
+app.use('/api/finance', financeRoutes);
+app.use('/api/emergencies', emergencyRoutes);
+app.use('/api/sync', syncRoutes);
 
 const fs = require('fs');
 const path = require('path');
